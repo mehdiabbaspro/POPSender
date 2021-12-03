@@ -1,0 +1,11 @@
+F:\Work\Source\Repos\POPSender\GGRCSMScheduler\bin\Debug\NewPOPMessageSender.exe.config
+F:\Work\Source\Repos\POPSender\GGRCSMScheduler\bin\Debug\NewPOPMessageSender.exe
+F:\Work\Source\Repos\POPSender\GGRCSMScheduler\bin\Debug\NewPOPMessageSender.pdb
+F:\Work\Source\Repos\POPSender\GGRCSMScheduler\bin\Debug\MySql.Data.dll
+F:\Work\Source\Repos\POPSender\GGRCSMScheduler\bin\Debug\Newtonsoft.Json.dll
+F:\Work\Source\Repos\POPSender\GGRCSMScheduler\bin\Debug\MySql.Data.xml
+F:\Work\Source\Repos\POPSender\GGRCSMScheduler\obj\Debug\POPSender.csproj.AssemblyReference.cache
+F:\Work\Source\Repos\POPSender\GGRCSMScheduler\obj\Debug\POPSender.csproj.CoreCompileInputs.cache
+F:\Work\Source\Repos\POPSender\GGRCSMScheduler\obj\Debug\POPSender.csproj.CopyComplete
+F:\Work\Source\Repos\POPSender\GGRCSMScheduler\obj\Debug\NewPOPMessageSender.exe
+F:\Work\Source\Repos\POPSender\GGRCSMScheduler\obj\Debug\NewPOPMessageSender.pdb

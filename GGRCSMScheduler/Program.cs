@@ -1311,8 +1311,8 @@ namespace GGRCSMScheduler
                                      Str1 = Convert.ToString(rw["WorkID"]),
                                      Str2 = Convert.ToString(rw["WorkName"])
                                  }).ToList();
-            string clientmsgqry = "select UserID,VisibleName,u.VisibleName as ClientName,u.ServiceFinishDate, c.NotificationOnly from mfi.usermaster u join mfi.clientcode c on " +
-                                   " u.UserID = c.ClientID left join mfi.clientcode cd on u.UserID = cd.ClientID "+
+            string clientmsgqry = "select UserID,VisibleName,u.VisibleName as ClientName,u.ServiceFinishDate, c.NotificationOnly,pmap.PopID from mfi.usermaster u join mfi.clientcode c on " +
+                                   " u.UserID = c.ClientID left join mfi.clientcode cd on u.UserID = cd.ClientID left join pop.pop_clientmaster_map pmap on pmap.ProjectID = u.UserID" +
                                    " where u.UserTypeID = 5 and u.role = 'admin' and u.smsflag = 'yes' "+
                                    " and(u.ServiceFinishDate >= now() or u.ServiceFinishDate is null) "+
                                    " and cd.NewPopFlag = 1 "+
@@ -1324,7 +1324,9 @@ namespace GGRCSMScheduler
                 string userid = clientmsg.Rows[l]["UserID"].ToString();
                 string sevicenddate= clientmsg.Rows[l]["ServiceFinishDate"].ToString();
                 string NotificationOnly = clientmsg.Rows[l]["NotificationOnly"].ToString();
-
+                string PopID = clientmsg.Rows[l]["PopID"].ToString();
+                if (string.IsNullOrEmpty(PopID))
+                    continue;
                 DateTime clientservicedate = new DateTime();
                 DateTime.TryParse(sevicenddate,out clientservicedate);
 
