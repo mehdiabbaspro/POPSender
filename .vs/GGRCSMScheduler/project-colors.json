@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "ProjectMap": {
+    "46d64c6a-922f-4ede-9c23-e605de832bad": {
+      "ProjectGuid": "46d64c6a-922f-4ede-9c23-e605de832bad",
+      "DisplayName": "POPSender",
+      "ColorIndex": 0
+    }
+  },
+  "NextColorIndex": 1
+}

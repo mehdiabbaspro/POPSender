@@ -9,3 +9,15 @@ F:\Work\Source\Repos\POPSender\GGRCSMScheduler\obj\Debug\POPSender.csproj.CoreCo
 F:\Work\Source\Repos\POPSender\GGRCSMScheduler\obj\Debug\POPSender.csproj.CopyComplete
 F:\Work\Source\Repos\POPSender\GGRCSMScheduler\obj\Debug\NewPOPMessageSender.exe
 F:\Work\Source\Repos\POPSender\GGRCSMScheduler\obj\Debug\NewPOPMessageSender.pdb
+D:\Work\Repos\POPSender\GGRCSMScheduler\bin\Debug\NewPOPMessageSender.exe.config
+D:\Work\Repos\POPSender\GGRCSMScheduler\bin\Debug\NewPOPMessageSender.exe
+D:\Work\Repos\POPSender\GGRCSMScheduler\bin\Debug\NewPOPMessageSender.pdb
+D:\Work\Repos\POPSender\GGRCSMScheduler\bin\Debug\MySql.Data.dll
+D:\Work\Repos\POPSender\GGRCSMScheduler\bin\Debug\Newtonsoft.Json.dll
+D:\Work\Repos\POPSender\GGRCSMScheduler\bin\Debug\MySql.Data.xml
+D:\Work\Repos\POPSender\GGRCSMScheduler\obj\Debug\POPSender.csproj.AssemblyReference.cache
+D:\Work\Repos\POPSender\GGRCSMScheduler\obj\Debug\POPSender.csproj.SuggestedBindingRedirects.cache
+D:\Work\Repos\POPSender\GGRCSMScheduler\obj\Debug\POPSender.csproj.CoreCompileInputs.cache
+D:\Work\Repos\POPSender\GGRCSMScheduler\obj\Debug\POPSender.csproj.CopyComplete
+D:\Work\Repos\POPSender\GGRCSMScheduler\obj\Debug\NewPOPMessageSender.exe
+D:\Work\Repos\POPSender\GGRCSMScheduler\obj\Debug\NewPOPMessageSender.pdb

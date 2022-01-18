@@ -1404,6 +1404,15 @@ namespace GGRCSMScheduler
                         string farmername = "";
                         string databaserainalert = "";
                         string FarmID = DTDabwalfarms.Rows[i]["FarmID"].ToString();
+
+                        DataTable DTLastChecked = getData("select * from pop.sendlog where FarmID = " + FarmID);
+
+                        if(DTLastChecked.Rows.Count > 0)
+                        {
+                            DateTime dtLastChecked = DTLastChecked.Rows[0]["LastCheckedDate"].ToString().dtTP();
+                            if ((DateTime.Now - dtLastChecked).TotalDays < 2)
+                                continue;
+                        }
                         string RefID = DTDabwalfarms.Rows[i]["RefId"].ToString();
                         farmername = DTDabwalfarms.Rows[i]["FarmerName"].ToString();
                         District = DTDabwalfarms.Rows[i]["District"].ToString();
@@ -1433,7 +1442,7 @@ namespace GGRCSMScheduler
                             WebClient wc = new WebClient();
                             wc.Encoding = Encoding.UTF8;
 
-                            string AdvisoryData = wc.DownloadString("https://myfarminfo.com/yfirest.svc/GetCropAdvisory/" + FarmID + "/" + prefPoplan);
+                            string AdvisoryData = wc.DownloadString("https://myfarminfo.com/yfirest.svc/GetCropAdvisory/" + FarmID + "/" + prefPoplan + "/na/null/null/1");
 
                             string strAdvisoryData = JsonConvert.DeserializeObject<string>(AdvisoryData);
 
@@ -1447,6 +1456,14 @@ namespace GGRCSMScheduler
                             Console.WriteLine("Sending CropCondition");
                             sendCC_PS_Messages("CC", Client, DTDabwalfarms,  status, i, stateID, ref hindivillage, out VillageID, out Village, FarmID, mobileno, sqlhead_sentmessages, out DTPOPSMS, ref SMS, ref StageName, ref StageName_Regional, objDA);
 
+                            if (DTLastChecked.Rows.Count > 0)
+                            {
+                                execQuery("update pop.sendlog set LastCheckedDate = '" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "' where FarmID = " + FarmID);
+                                  }
+                            else
+                            {
+                                execQuery("insert into pop.sendlog (FarmID, LastCheckedDate) values (" + FarmID + ", '" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "')");
+                            }
 
 
 
