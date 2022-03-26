@@ -1,7 +1,8 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\GGRCSMScheduler"
   ],
-  "SelectedNode": "\\GGRCSMScheduler.sln",
+  "SelectedNode": "\\GGRCSMScheduler\\Program.cs",
   "PreviewInSolutionExplorer": false
 }
