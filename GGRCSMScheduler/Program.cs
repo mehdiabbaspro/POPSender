@@ -26,6 +26,7 @@ namespace GGRCSMScheduler
         static int AppID = 22;
         public static System.Threading.Mutex mutex = new Mutex(true, "FarmSMScheduler2.exe");
         double totalwater = 25;
+        public static bool flgTest = true;
         static void Main(string[] args)
         {
             Program objProg = new Program();
@@ -45,7 +46,8 @@ namespace GGRCSMScheduler
                 Console.WriteLine("POP Sender");
                 Console.WriteLine("Start at ... " + DateTime.Now);
                 arrActivityLog.Add("Started at " + DateTime.Now);
-
+                if(flgTest)
+                    Console.WriteLine("RUNNING IN TEST MODE");
                 objProg.updAppLastRun();
                 objProg.NewPOPMessageSender();
                
@@ -1293,6 +1295,7 @@ namespace GGRCSMScheduler
 
         void NewPOPMessageSender()
         {
+            DataTable DTLanguages = getData("select * from mfi.language_master");
             execQuery("delete from mfi.farm_sms_status_master where LogDate < '" + DateTime.Now.AddDays(-14).ToString("yyyy-MM-dd") + "'");
             // execQuery("delete from mfi.farm_sms_lstsend where date(LogDate) < '" + DateTime.Now.ToString("yyyy-MM-dd") + "' and (FarmID,MessageType) not in (SELECT FarmID,MessageType FROM mfi.farm_sms_status_master where MsgStatus='cancel' and date(DATE_ADD(ScheduleDate, INTERVAL 15 DAY))>date(Now())");
             execQuery("delete from mfi.farm_sms_lstsend where date(LogDate) < '" + DateTime.Now.ToString("yyyy-MM-dd") + "' and (FarmID,MessageType) " +
@@ -1319,7 +1322,7 @@ namespace GGRCSMScheduler
                                    " where u.UserTypeID = 5 and u.role = 'admin' and u.smsflag = 'yes' "+
                                    " and(u.ServiceFinishDate >= now() or u.ServiceFinishDate is null) "+
                                    " and cd.NewPopFlag = 1 "+
-                                   " order by u.UserID desc; ";
+                                   " order by u.UserID desc ";
             DataTable clientmsg = getData(clientmsgqry);
             for (int l = 0; l < clientmsg.Rows.Count; l++)
             {
@@ -1337,8 +1340,11 @@ namespace GGRCSMScheduler
               
                 string ID = userid;
 
-                //if (ID != "374826")
-                //    continue;
+                if (flgTest)
+                {
+                    if (ID != "401195")
+                        continue;
+                }
 
                 string Client = visiblename;
                 Console.WriteLine("ID is==>" + ID + "==>client is==>" + Client);
@@ -1365,23 +1371,8 @@ namespace GGRCSMScheduler
                 List<Agronimist> lstAgro = new List<Agronimist>();
 
                 DataTable preflan = GetPrefredlanguage(ID);
-                string prefforecastlan = "";
-                string[] forecastlan = preflan.Rows[0]["forecast_Preferredlan"].ToString().Split(';');
-                List<forecastlan> forecastlangauge = new List<forecastlan>();
-                if (forecastlan.Length > 1)
-                {
-                    for (int g = 0; g < forecastlan.Length; g++)
-                    {
-                        string[] stateidlang = forecastlan[g].Split('-');
-                        forecastlangauge.Add(new forecastlan { stateID = stateidlang[0], forcastlan = stateidlang[1] });
-                    }
-                }
-                else
-                    prefforecastlan = forecastlan[0];
 
-
-
-                string forecastweatherflg = preflan.Rows[0]["forecastweatherflg"].ToString();
+              
 
                 DataTable dtAdmin = new DataTable();
 
@@ -1391,13 +1382,15 @@ namespace GGRCSMScheduler
 
                     string status = "Pending";
 
-                    if (ID == "100615" || ID  == "334568" || NotificationOnly != "0")
+                    if (ID == "100615" || ID == "401195" || ID  == "334568" || NotificationOnly != "0")
                         status = "Done";
 
 
                     for (int i = 0; i < DTDabwalfarms.Rows.Count; i++)
                     {
-                        //if (i <= 11)
+                       int LanguageID = 0;
+
+                        //if (i <= 1100)
                         //    continue;
                         string District = "";
                         string hindivillage = "";
@@ -1407,16 +1400,19 @@ namespace GGRCSMScheduler
                         string farmername = "";
                         string databaserainalert = "";
                         string FarmID = DTDabwalfarms.Rows[i]["FarmID"].ToString();
-
+                        if (flgTest)
+                        {
+                            if (FarmID != "809084")
+                                continue;
+                        }
                         DataTable DTLastChecked = getData("select * from pop.sendlog where FarmID = " + FarmID);
 
-                        //if (FarmID != "663247")
-                        //    continue;
+                       
 
                         if(DTLastChecked.Rows.Count > 0)
                         {
                             DateTime dtLastChecked = DTLastChecked.Rows[0]["LastCheckedDate"].ToString().dtTP();
-                            if ((DateTime.Now - dtLastChecked).TotalDays < 2)
+                            if ((DateTime.Now - dtLastChecked).TotalDays < 1)
                                 continue;
                         }
                         string RefID = DTDabwalfarms.Rows[i]["RefId"].ToString();
@@ -1433,10 +1429,22 @@ namespace GGRCSMScheduler
                         string farmerlanguage = DTDabwalfarms.Rows[i]["Language"].ToString();
                         if (farmerlanguage != "")
                             prefPoplan = farmerlanguage;
+
+                        try
+                        {
+                            var DRLanguage = DTLanguages.Select("Language = '" + prefPoplan + "'");
+                            if (DRLanguage != null && DRLanguage.Count() > 0)
+                                LanguageID = DRLanguage[0]["ID"].ToString().intTP();
+                        }
+                        catch (Exception)
+                        {
+
+                        }
+
                         databaserainalert = DTDabwalfarms.Rows[i]["RainAlertStatus"].ToString();
                         //if (FarmID != "683923")
                         //    continue;
-                        string sqlhead_sentmessages = "insert into pop.sentmessages (FarmID, WorkID) values ";
+                        string sqlhead_sentmessages = "insert into pop.sentmessages (FarmID, WorkID, LastCheckedDate) values ";
                         DataTable DTPOPSMS = new DataTable();
                         DataTable DTProblemSolution = new DataTable();
                         DataTable DTCropCondition = new DataTable();
@@ -1456,11 +1464,11 @@ namespace GGRCSMScheduler
                             Console.WriteLine("==>client is==>" + Client + "Sending POP - " + i + "/" + DTDabwalfarms.Rows.Count);
                             sendPOPMessages(lstWorkMaster, Client, DTDabwalfarms, status, i, 
                                 stateID,ref  hindivillage, out VillageID, out Village, FarmID, mobileno, sqlhead_sentmessages, out DTPOPSMS, ref SMS,
-                                ref StageName, ref StageName_Regional, objDA);
+                                ref StageName, ref StageName_Regional, objDA, ID.intTP(), LanguageID);
                             Console.WriteLine("==>client is==>" + Client + "Sending ProblemSolution - " + i + "/" + DTDabwalfarms.Rows.Count);
-                            sendCC_PS_Messages("PS", Client, DTDabwalfarms,  status, i, stateID, ref hindivillage, out VillageID, out Village, FarmID, mobileno, sqlhead_sentmessages, out DTPOPSMS, ref SMS, ref StageName, ref StageName_Regional, objDA);
+                            sendCC_PS_Messages("PS", Client, DTDabwalfarms,  status, i, stateID, ref hindivillage, out VillageID, out Village, FarmID, mobileno, sqlhead_sentmessages, out DTPOPSMS, ref SMS, ref StageName, ref StageName_Regional, objDA, ID.intTP(), LanguageID);
                             Console.WriteLine("==>client is==>" + Client + "Sending CropCondition - " + i + "/" + DTDabwalfarms.Rows.Count);
-                            sendCC_PS_Messages("CC", Client, DTDabwalfarms,  status, i, stateID, ref hindivillage, out VillageID, out Village, FarmID, mobileno, sqlhead_sentmessages, out DTPOPSMS, ref SMS, ref StageName, ref StageName_Regional, objDA);
+                            sendCC_PS_Messages("CC", Client, DTDabwalfarms,  status, i, stateID, ref hindivillage, out VillageID, out Village, FarmID, mobileno, sqlhead_sentmessages, out DTPOPSMS, ref SMS, ref StageName, ref StageName_Regional, objDA, ID.intTP(), LanguageID);
 
                             if (DTLastChecked.Rows.Count > 0)
                             {
@@ -1482,7 +1490,7 @@ namespace GGRCSMScheduler
                 }
             }
         }
-        private void sendCC_PS_Messages(string CC_PS, string Client, DataTable DTDabwalfarms,  string status, int i, string stateID, ref string hindivillage, out string VillageID, out string Village, string FarmID, string mobileno, string sqlhead_sentmessages, out DataTable DTPOPSMS, ref string SMS, ref string StageName, ref string StageName_Regional, DashBordAdvisory objDA)
+        private void sendCC_PS_Messages(string CC_PS, string Client, DataTable DTDabwalfarms,  string status, int i, string stateID, ref string hindivillage, out string VillageID, out string Village, string FarmID, string mobileno, string sqlhead_sentmessages, out DataTable DTPOPSMS, ref string SMS, ref string StageName, ref string StageName_Regional, DashBordAdvisory objDA, int ProjectID, int LanguageID)
         {
             string IDCol = "";
             string TableName = "";
@@ -1503,7 +1511,7 @@ namespace GGRCSMScheduler
                 TableName = "sentproblemsolution";
                 ccsid = "ProblemSolution";
             }
-            sqlhead_sentmessages = "insert into pop." + TableName + "(FarmID, WorkID) values ";
+            sqlhead_sentmessages = "insert into pop." + TableName + "(FarmID, WorkID, SendDate) values ";
             try
             {
                 
@@ -1517,7 +1525,7 @@ namespace GGRCSMScheduler
                     return;
                 string strWorkIDS = string.Join(",", lstWorkIDs);
                 List<int> lstSentWorkIDs = new List<int>();
-                DataTable DTSentMessages = getData("select * from pop." + TableName + " where FarmID = " + FarmID + " and WorkID in (" + strWorkIDS + ")");
+                DataTable DTSentMessages = getData("select * from pop." + TableName + " where FarmID = " + FarmID + " and WorkID in (" + strWorkIDS + ") and SendDate >= '" + DateTime.Now.AddDays(-11).ToString("yyyy-MM-dd") + "'");
                 if (DTSentMessages.Rows.Count > 0)
                 {
 
@@ -1600,10 +1608,11 @@ namespace GGRCSMScheduler
                     string Name = DTPOPSMS.Rows[i_msg]["Name"].ToString();
                     string Name_English = DTPOPSMS.Rows[i_msg]["Name_English"].ToString();
                     string ImageName = DTPOPSMS.Rows[i_msg]["imagefile"].ToString();
-                    ImageName = "https://ndviimages.s3.ap-south-1.amazonaws.com/WeedImages/" + ImageName;
+                    if(!ImageName.Contains("WeedImages"))
+                        ImageName = "https://ndviimages.s3.ap-south-1.amazonaws.com/WeedImages/" + ImageName;
                     int CurWorkID = DTPOPSMS.Rows[i_msg][IDCol].ToString().intTP();
                     string CurWorkName = "";
-                    string MessageType = ccsid;
+                    string MessageType = ccsid + " - " + StageName;
 
                     if (Name == "" || SMS == "" || (CC_PS == "PS" && Solution == ""))
                         continue;
@@ -1623,12 +1632,12 @@ namespace GGRCSMScheduler
                         execQuery("insert mfi.farm_sms_status_master (FarmID, ScheduleDate, LogDate, MsgStatus, Message, MessageType,DummyMessageType) values ('" + FarmID + "', '" + DateTime.Now.ToString("yyyy-MM-dd") + "', '" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "', 'Send', '" + SMS.Trim() + "', '" + MessageType + "', '" + MessageType + "')");
 
                         if (execQuery("insert into wrserver1.smsout(SndFrom, SndTo, MsgType, Subject, message, Status, MsgMode, Channel," +
-                            " ccSid ,OutDate,FarmID,Notificationflag, ImageName,keyid) values ('" + Client + "Farmers_" + ccsid + "', " +
+                            " ccSid ,OutDate,FarmID,Notificationflag, ImageName,keyid, ProjectID, LanguageID) values ('" + Client + "Farmers_" + ccsid + "', " +
                             "'" + mobileno + "', '" + Client + "', '" + Client + " Subject', '" + SMS.Trim() + "', 'NotSent', " +
                             "'Unicode', 'Gateway2', '" + MessageType + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
-                            + "','" + FarmID + "', " + Notificationflag + ",'" + ImageName + "'," + CurWorkID + ")"))
+                            + "','" + FarmID + "', " + Notificationflag + ",'" + ImageName + "'," + CurWorkID + ", " + ProjectID + ", " + LanguageID + ")"))
                         {
-                            execQuery(sqlhead_sentmessages + "(" + FarmID + "," + CurWorkID + ")");
+                            execQuery(sqlhead_sentmessages + "(" + FarmID + "," + CurWorkID + ",'" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "')");
                         }
 
                     }
@@ -1644,7 +1653,7 @@ namespace GGRCSMScheduler
             }
         }
 
-        private void sendPOPMessages(List<StringString> lstWorkMaster, string Client, DataTable DTDabwalfarms,  string status, int i, string stateID, ref string hindivillage, out string VillageID,  out string Village, string FarmID, string mobileno, string sqlhead_sentmessages, out DataTable DTPOPSMS, ref string SMS, ref string StageName, ref string StageName_Regional, DashBordAdvisory objDA)
+        private void sendPOPMessages(List<StringString> lstWorkMaster, string Client, DataTable DTDabwalfarms,  string status, int i, string stateID, ref string hindivillage, out string VillageID,  out string Village, string FarmID, string mobileno, string sqlhead_sentmessages, out DataTable DTPOPSMS, ref string SMS, ref string StageName, ref string StageName_Regional, DashBordAdvisory objDA,int ProjectID, int LanguageID)
         {
             Village = "";
             VillageID = "";
@@ -1657,7 +1666,7 @@ namespace GGRCSMScheduler
             var lstWorkIDs = DTPOPSMS.AsEnumerable().Select(a => a.Field<Int64>("WorkMapID")).ToList();
             string strWorkIDS = string.Join(",", lstWorkIDs);
             List<int> lstSentWorkIDs = new List<int>();
-            DataTable DTSentMessages = getData("select * from pop.sentmessages where FarmID = " + FarmID + " and WorkID in (" + strWorkIDS + ")");
+            DataTable DTSentMessages = getData("select * from pop.sentmessages where FarmID = " + FarmID + " and WorkID in (" + strWorkIDS + ") and LastCheckedDate >= '" + DateTime.Now.AddDays(-11).ToString("yyyy-MM-dd") + "'");
             if (DTSentMessages.Rows.Count > 0)
             {
 
@@ -1745,12 +1754,12 @@ namespace GGRCSMScheduler
                     execQuery("insert mfi.farm_sms_status_master (FarmID, ScheduleDate, LogDate, MsgStatus, Message, MessageType,DummyMessageType) values ('" + FarmID + "', '" + DateTime.Now.ToString("yyyy-MM-dd") + "', '" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "', 'Send', '" + SMS.Trim() + "', '" + MessageType + "', '" + MessageType + "')");
 
                     if (execQuery("insert into wrserver1.smsout(SndFrom, SndTo, MsgType, Subject, message, " +
-                        "Status, MsgMode, Channel, ccSid ,OutDate,FarmID,keyid ) " +
+                        "Status, MsgMode, Channel, ccSid ,OutDate,FarmID,keyid , ProjectID, LanguageID) " +
                         " values " +
                         "('" + Client + "Farmers', '" + mobileno + "', '" + Client + "', '" + Client + " Subject', '" + SMS.Trim() + "', " +
                         "'" + status + "', 'Unicode', 'Gateway2', '" + MessageType + "','" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + 
-                        "','" + FarmID + "'," + CurWorkMapID + ")"))
-                        execQuery(sqlhead_sentmessages + "(" + FarmID + "," + CurWorkMapID + ")");
+                        "','" + FarmID + "'," + CurWorkMapID + ", " + ProjectID + ", " + LanguageID + ")"))
+                        execQuery(sqlhead_sentmessages + "(" + FarmID + "," + CurWorkMapID + ",'" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "')");
 
                 }
 
