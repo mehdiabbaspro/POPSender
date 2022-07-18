@@ -26,7 +26,8 @@ namespace GGRCSMScheduler
         static int AppID = 22;
         public static System.Threading.Mutex mutex = new Mutex(true, "FarmSMScheduler2.exe");
         double totalwater = 25;
-        public static bool flgTest = true;
+        public static bool flgTest = false;
+        public static string Mode = "Other";
         static void Main(string[] args)
         {
             Program objProg = new Program();
@@ -42,6 +43,10 @@ namespace GGRCSMScheduler
 
             if (createdNew)
             {
+                if(Mode == "Jalna")
+                {
+                    AppID = 89;
+                }
                 //  arrActivityLog.Add("Started at " + DateTime.Now);
                 Console.WriteLine("POP Sender");
                 Console.WriteLine("Start at ... " + DateTime.Now);
@@ -212,7 +217,10 @@ namespace GGRCSMScheduler
         public bool updAppLastRun()
         { // Last App running time
             //  MySqlConnection conn = (MYINGEN.DBEngine()).getconn();
-            string sql = "update mfi.cm_apps set LastRanAt = '" + ConDateTime(DateTime.Now) + "' where ID = " + AppID;
+            string Schema = "mfi";
+            if (Mode == "Jalna")
+                Schema = "appmanager";
+            string sql = "update " + Schema + ".cm_apps set LastRanAt = '" + ConDateTime(DateTime.Now) + "' where ID = " + AppID;
             try
             {
 
@@ -1317,7 +1325,7 @@ namespace GGRCSMScheduler
                                      Str1 = Convert.ToString(rw["WorkID"]),
                                      Str2 = Convert.ToString(rw["WorkName"])
                                  }).ToList();
-            string clientmsgqry = "select UserID,VisibleName,u.VisibleName as ClientName,u.ServiceFinishDate, c.NotificationOnly,pmap.PopID from mfi.usermaster u join mfi.clientcode c on " +
+            string clientmsgqry = "select UserID,VisibleName,u.VisibleName as ClientName,u.ServiceFinishDate, c.NotificationOnly,pmap.PopID, c.Cluster from mfi.usermaster u join mfi.clientcode c on " +
                                    " u.UserID = c.ClientID left join mfi.clientcode cd on u.UserID = cd.ClientID left join pop.pop_clientmaster_map pmap on pmap.ProjectID = u.UserID" +
                                    " where u.UserTypeID = 5 and u.role = 'admin' and u.smsflag = 'yes' "+
                                    " and(u.ServiceFinishDate >= now() or u.ServiceFinishDate is null) "+
@@ -1332,6 +1340,11 @@ namespace GGRCSMScheduler
                 string sevicenddate= clientmsg.Rows[l]["ServiceFinishDate"].ToString();
                 string NotificationOnly = clientmsg.Rows[l]["NotificationOnly"].ToString();
                 string PopID = clientmsg.Rows[l]["PopID"].ToString();
+                int Cluster = clientmsg.Rows[l]["Cluster"].ToString().intTP();
+                if(Mode == "Jalna" && Cluster != 2)
+                    continue;
+                else if (Mode != "Jalna" && Cluster == 2)
+                    continue;
                 if (string.IsNullOrEmpty(PopID))
                     continue;
                 DateTime clientservicedate = new DateTime();
@@ -1342,7 +1355,7 @@ namespace GGRCSMScheduler
 
                 if (flgTest)
                 {
-                    if (ID != "401195")
+                    if (ID != "404107")
                         continue;
                 }
 
@@ -1382,7 +1395,7 @@ namespace GGRCSMScheduler
 
                     string status = "Pending";
 
-                    if (ID == "100615" || ID == "401195" || ID  == "334568" || NotificationOnly != "0")
+                    if (Cluster == 2 || NotificationOnly != "0")
                         status = "Done";
 
 
@@ -1402,8 +1415,8 @@ namespace GGRCSMScheduler
                         string FarmID = DTDabwalfarms.Rows[i]["FarmID"].ToString();
                         if (flgTest)
                         {
-                            if (FarmID != "809084")
-                                continue;
+                            //if (FarmID != "809084")
+                            //    continue;
                         }
                         DataTable DTLastChecked = getData("select * from pop.sendlog where FarmID = " + FarmID);
 
@@ -1743,7 +1756,7 @@ namespace GGRCSMScheduler
 
             for (int i_msg = 0; i_msg < DTPOPSMS.Rows.Count; i_msg++)
             {
-                SMS = DTPOPSMS.Rows[i_msg]["Work"].ToString();
+                SMS = DTPOPSMS.Rows[i_msg]["Recommendation"].ToString();
                 int CurWorkID = DTPOPSMS.Rows[i_msg]["WorkID"].ToString().intTP();
                 int CurWorkMapID = DTPOPSMS.Rows[i_msg]["WorkMapID"].ToString().intTP();
                 string CurWorkName = lstWorkMaster.Find(a => a.Str1 == CurWorkID.ToString()).Str2;
