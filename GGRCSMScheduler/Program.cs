@@ -30,7 +30,9 @@ namespace GGRCSMScheduler
         public static string Mode = "Other";
         static void Main(string[] args)
         {
-            Program objProg = new Program();
+            Mode = "Jalna";
+
+               Program objProg = new Program();
             bool createdNew;
             Program objProgram = new Program();
             if (mutex.WaitOne(TimeSpan.Zero, true))
@@ -1341,12 +1343,14 @@ namespace GGRCSMScheduler
                 string NotificationOnly = clientmsg.Rows[l]["NotificationOnly"].ToString();
                 string PopID = clientmsg.Rows[l]["PopID"].ToString();
                 int Cluster = clientmsg.Rows[l]["Cluster"].ToString().intTP();
+                
                 if(Mode == "Jalna" && Cluster != 2)
                     continue;
                 else if (Mode != "Jalna" && Cluster == 2)
                     continue;
                 if (string.IsNullOrEmpty(PopID))
                     continue;
+
                 DateTime clientservicedate = new DateTime();
                 DateTime.TryParse(sevicenddate,out clientservicedate);
 
