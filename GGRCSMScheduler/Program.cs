@@ -26,11 +26,11 @@ namespace GGRCSMScheduler
         static int AppID = 22;
         public static System.Threading.Mutex mutex = new Mutex(true, "FarmSMScheduler2.exe");
         double totalwater = 25;
-        public static bool flgTest = false;
+        public static bool flgTest = true;
         public static string Mode = "Other";
         static void Main(string[] args)
         {
-            Mode = "Jalna";
+            Mode = "Other";
 
                Program objProg = new Program();
             bool createdNew;
@@ -1336,7 +1336,6 @@ namespace GGRCSMScheduler
             DataTable clientmsg = getData(clientmsgqry);
             for (int l = 0; l < clientmsg.Rows.Count; l++)
             {
-                updAppLastRun();
                 string visiblename = clientmsg.Rows[l]["ClientName"].ToString();
                 string userid = clientmsg.Rows[l]["UserID"].ToString();
                 string sevicenddate= clientmsg.Rows[l]["ServiceFinishDate"].ToString();
@@ -1359,7 +1358,7 @@ namespace GGRCSMScheduler
 
                 if (flgTest)
                 {
-                    if (ID != "404107")
+                    if (ID != "429565")
                         continue;
                 }
 
@@ -1370,8 +1369,9 @@ namespace GGRCSMScheduler
                     continue;
 
 
+                updAppLastRun();
 
-                
+
 
                 List<StringStringStringString> LstRefID = new List<StringStringStringString>();
                 List<DataTableAndColDescForecastData> LstsDataForecast = new List<DataTableAndColDescForecastData>();
@@ -1419,8 +1419,8 @@ namespace GGRCSMScheduler
                         string FarmID = DTDabwalfarms.Rows[i]["FarmID"].ToString();
                         if (flgTest)
                         {
-                            //if (FarmID != "809084")
-                            //    continue;
+                            if (FarmID != "1248427" && FarmID != "1248428")
+                                continue;
                         }
                         DataTable DTLastChecked = getData("select * from pop.sendlog where FarmID = " + FarmID);
 
