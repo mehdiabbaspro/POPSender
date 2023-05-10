@@ -26,11 +26,10 @@ namespace GGRCSMScheduler
         static int AppID = 22;
         public static System.Threading.Mutex mutex = new Mutex(true, "FarmSMScheduler2.exe");
         double totalwater = 25;
-        public static bool flgTest = true;
-        public static string Mode = "Other";
+        public static bool flgTest = false;
+        public static string Mode = "Jalna";
         static void Main(string[] args)
         {
-            Mode = "Other";
 
                Program objProg = new Program();
             bool createdNew;
@@ -1273,7 +1272,7 @@ namespace GGRCSMScheduler
         public string popclientmastermap(string cid)
         {
             string result = "";
-            DataTable DT =  getData("select * from mfi.popclientmastermap where ClientID='" + cid + "' ");
+            DataTable DT =  getData("select * from mfi.`pop_DistProject_Map where ClientID='" + cid + "' ");
 
             DataTable DTcrop = getData("select ClientCropId from mfi.clientcode where ClientID = '"+ cid + "'");
             string cropid = "";
@@ -1327,12 +1326,7 @@ namespace GGRCSMScheduler
                                      Str1 = Convert.ToString(rw["WorkID"]),
                                      Str2 = Convert.ToString(rw["WorkName"])
                                  }).ToList();
-            string clientmsgqry = "select UserID,VisibleName,u.VisibleName as ClientName,u.ServiceFinishDate, c.NotificationOnly,pmap.PopID, c.Cluster from mfi.usermaster u join mfi.clientcode c on " +
-                                   " u.UserID = c.ClientID left join mfi.clientcode cd on u.UserID = cd.ClientID left join pop.pop_clientmaster_map pmap on pmap.ProjectID = u.UserID" +
-                                   " where u.UserTypeID = 5 and u.role = 'admin' and u.smsflag = 'yes' "+
-                                   " and(u.ServiceFinishDate >= now() or u.ServiceFinishDate is null) "+
-                                   " and cd.NewPopFlag = 1 "+
-                                   " order by u.UserID desc ";
+            string clientmsgqry = "select  UserID,VisibleName,um.VisibleName as ClientName,stng.ServiceFinishDate, stng.NotificationOnly,pmap.PopID, c.Cluster  from policy.policymaster pm left join policy.policymastersettings stng on pm.policymasterid=stng.policymasterid left join policy.planprojectmapping ppm on pm.policymasterid=ppm.planid left join mfi.usermaster um on um.userid=projectid left join mfi.clientcode c on um.UserID=c.ClientID left join pop.pop_DistProject_Map pmap on pmap.ProjectID = um.UserID where stng.ServiceFinishDate>now() and usertypeid=5 and role='admin' group by ppm.projectid order by um.UserID desc ";
             DataTable clientmsg = getData(clientmsgqry);
             for (int l = 0; l < clientmsg.Rows.Count; l++)
             {
@@ -1342,8 +1336,15 @@ namespace GGRCSMScheduler
                 string NotificationOnly = clientmsg.Rows[l]["NotificationOnly"].ToString();
                 string PopID = clientmsg.Rows[l]["PopID"].ToString();
                 int Cluster = clientmsg.Rows[l]["Cluster"].ToString().intTP();
-                
-                if(Mode == "Jalna" && Cluster != 2)
+                string ID = userid;
+
+
+                if (flgTest)
+                {
+                    if (ID != "452289")
+                        continue;
+                }
+                if (Mode == "Jalna" && Cluster != 2)
                     continue;
                 else if (Mode != "Jalna" && Cluster == 2)
                     continue;
@@ -1354,14 +1355,7 @@ namespace GGRCSMScheduler
                 DateTime.TryParse(sevicenddate,out clientservicedate);
 
               
-                string ID = userid;
-
-                if (flgTest)
-                {
-                    if (ID != "429565")
-                        continue;
-                }
-
+              
                 string Client = visiblename;
                 Console.WriteLine("ID is==>" + ID + "==>client is==>" + Client);
 
@@ -1419,14 +1413,14 @@ namespace GGRCSMScheduler
                         string FarmID = DTDabwalfarms.Rows[i]["FarmID"].ToString();
                         if (flgTest)
                         {
-                            if (FarmID != "1248427" && FarmID != "1248428")
+                            if (FarmID != "1290739")
                                 continue;
                         }
                         DataTable DTLastChecked = getData("select * from pop.sendlog where FarmID = " + FarmID);
 
                        
 
-                        if(DTLastChecked.Rows.Count > 0)
+                        if(!flgTest && DTLastChecked.Rows.Count > 0)
                         {
                             DateTime dtLastChecked = DTLastChecked.Rows[0]["LastCheckedDate"].ToString().dtTP();
                             if ((DateTime.Now - dtLastChecked).TotalDays < 1)
@@ -1604,8 +1598,8 @@ namespace GGRCSMScheduler
 
                 Console.WriteLine("Starting for Village" + Village);
 
-                 if (stateID == "" || stateID.ToLower() == "0")
-                     return;
+                 //if (stateID == "" || stateID.ToLower() == "0")
+                 //    return;
 
 
                 DataTable DTMicronuterentvalue = new DataTable();
@@ -1746,8 +1740,8 @@ namespace GGRCSMScheduler
 
             Console.WriteLine("Starting for Village" + Village);
 
-             if (stateID == "" || stateID.ToLower() == "0")
-                 return;
+             //if (stateID == "" || stateID.ToLower() == "0")
+             //    return;
 
 
             DataTable DTMicronuterentvalue = new DataTable();
@@ -2017,13 +2011,14 @@ namespace GGRCSMScheduler
                     //    "on map.FarmID=info.ID left	join wrserver1.yfi_farmcrop fcrop on fcrop.FarmID=map.FarmID left join test.sentinel_village_master vm " +
                     //    "on vm.Village_ID=info.VillageID left join wrwdata.mfi_gfs_farm as gfs on info.ID = gfs.Id left join mfi.rain_alert_checkstatus as chkrn on chkrn.FarmID=info.ID  where map.ClientID='" + ID + "' ";
 
-                    sql = "select info.AlterPhoneNo, fcrop.cropid,info.ID as FarmID,info.RefId,vm.District,info.VillageID,vm.Village_Final as VillageName,vm.VillageName_Hindi,vm.District,vm.Sub_district,vm.WRMS_StateID," +
+                    sql = "select info.AlterPhoneNo, map.policycropid CropID,info.ID as FarmID,info.RefId,vm.District,info.VillageID,vm.Village_Final as VillageName,vm.VillageName_Hindi,vm.District,vm.Sub_district,vm.WRMS_StateID," +
                         "info.state,info.FarmerName,info.PhoneNumber,(info.MaxLat+info.MinLat)/2 as latitude, (info.MaxLon+info.MinLon)/2 as " +
-                        "longitude,Date(fcrop.CropFrom) as sowingdate,chkrn.RainAlertStatus, lm.Language from mfi.clientfarmmapping2 map left join wrserver1.yfi_farminfo info " +
-                        "on map.FarmID=info.ID left	join wrserver1.yfi_farmcrop fcrop on fcrop.FarmID=map.FarmID left join test.sentinel_village_master vm  " +
+                        "longitude,Date(map.CropStart) as sowingdate,chkrn.RainAlertStatus, lm.Language from policy.policy map left join wrserver1.yfi_farminfo info " +
+                        "on map.FarmID=info.ID left join test.sentinel_village_master vm  " +
                         "on vm.Village_ID=info.VillageID " +
                         " left join mfi.rain_alert_checkstatus as chkrn on chkrn.FarmID=info.ID " +
-                        " left join mfi.language_master lm on info.languageid = lm.ID where map.ClientID='" + ID + "' group by  info.ID";
+                        " left join mfi.language_master lm on info.languageid = lm.ID where " +
+                        "map.MapProjectID='" + ID + "' and VerificationStatus=1 and CurrentStatus=1  group by  info.ID";
 
 
                     MySqlDataAdapter Adpter = new MySqlDataAdapter(sql, conn);
