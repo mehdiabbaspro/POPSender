@@ -1326,7 +1326,7 @@ namespace GGRCSMScheduler
                                      Str1 = Convert.ToString(rw["WorkID"]),
                                      Str2 = Convert.ToString(rw["WorkName"])
                                  }).ToList();
-            string clientmsgqry = "select  UserID,VisibleName,um.VisibleName as ClientName,stng.ServiceFinishDate, stng.NotificationOnly,pmap.PopID, c.Cluster  from policy.policymaster pm left join policy.policymastersettings stng on pm.policymasterid=stng.policymasterid left join policy.planprojectmapping ppm on pm.policymasterid=ppm.planid left join mfi.usermaster um on um.userid=projectid left join mfi.clientcode c on um.UserID=c.ClientID left join pop.pop_DistProject_Map pmap on pmap.ProjectID = um.UserID where stng.ServiceFinishDate>now() and usertypeid=5 and role='admin' group by ppm.projectid order by um.UserID desc ";
+            string clientmsgqry = "select  UserID,VisibleName,um.VisibleName as ClientName,stng.ServiceFinishDate, stng.NotificationOnly,pmap.PopID, c.Cluster  from policy.policymaster pm left join policy.policymastersettings stng on pm.policymasterid=stng.policymasterid left join policy.planprojectmapping ppm on pm.policymasterid=ppm.planid left join mfi.usermaster um on um.userid=projectid left join mfi.clientcode c on um.UserID=c.ClientID left join pop.pop_DistProject_Map pmap on pmap.ProjectID = um.UserID where stng.ServiceFinishDate>now() and usertypeid=5 and role='admin' and UserID is not null group by ppm.projectid order by um.UserID desc ";
             DataTable clientmsg = getData(clientmsgqry);
             for (int l = 0; l < clientmsg.Rows.Count; l++)
             {
@@ -1424,7 +1424,9 @@ namespace GGRCSMScheduler
                         {
                             DateTime dtLastChecked = DTLastChecked.Rows[0]["LastCheckedDate"].ToString().dtTP();
                             if ((DateTime.Now - dtLastChecked).TotalDays < 1)
+                            {
                                 continue;
+                            }
                         }
                         string RefID = DTDabwalfarms.Rows[i]["RefId"].ToString();
                         farmername = DTDabwalfarms.Rows[i]["FarmerName"].ToString();
@@ -2018,7 +2020,7 @@ namespace GGRCSMScheduler
                         "on vm.Village_ID=info.VillageID " +
                         " left join mfi.rain_alert_checkstatus as chkrn on chkrn.FarmID=info.ID " +
                         " left join mfi.language_master lm on info.languageid = lm.ID where " +
-                        "map.MapProjectID='" + ID + "' and VerificationStatus=1 and CurrentStatus=1  group by  info.ID";
+                        "map.MapProjectID=" + ID + " and VerificationStatus=1 and CurrentStatus=1  group by  info.ID";
 
 
                     MySqlDataAdapter Adpter = new MySqlDataAdapter(sql, conn);
