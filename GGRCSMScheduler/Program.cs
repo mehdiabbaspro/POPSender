@@ -27,7 +27,7 @@ namespace GGRCSMScheduler
         public static System.Threading.Mutex mutex = new Mutex(true, "FarmSMScheduler2.exe");
         double totalwater = 25;
         public static bool flgTest = false;
-        public static string Mode = "Jalna";
+        public static string Mode = "Other";
         static void Main(string[] args)
         {
 
@@ -73,7 +73,7 @@ namespace GGRCSMScheduler
             DTPOPStages = getData("select * from mfi.pop_stages where CropID = 12");
             DTPOPWork = getData("select * from mfi.pop_work where StageID in (select ID from mfi.pop_stages where CropID = 12)");
 
-            DataTable DTAllFarmers = getDabwaliFarms("100894", "");
+            DataTable DTAllFarmers = new DataTable(); // getDabwaliFarms("100894", "");
             for (int i = 0; i < DTAllFarmers.Rows.Count; i++)
             {
                 DateTime SowingDate = new DateTime();
@@ -887,7 +887,7 @@ namespace GGRCSMScheduler
             try
             {
                 WebClient wc = new WebClient();
-                string apiAddr = "http://myfarminfo.com//yfirest.svc/Soil/Info/" + Latitude + "/" + Longitude;
+                string apiAddr = "https://mfi.secu.farm/yfirest.svc/Soil/Info/" + Latitude + "/" + Longitude;
                 string strForecast = wc.DownloadString(apiAddr);
                 // strForecast = strForecast.Replace("\\\\\\\"","\"");
                 DataTableAndColDesc DTForecastFUll = new DataTableAndColDesc();
@@ -1326,11 +1326,13 @@ namespace GGRCSMScheduler
                                      Str1 = Convert.ToString(rw["WorkID"]),
                                      Str2 = Convert.ToString(rw["WorkName"])
                                  }).ToList();
-            string clientmsgqry = "select  UserID,VisibleName,um.VisibleName as ClientName,stng.ServiceFinishDate, stng.NotificationOnly,pmap.PopID, c.Cluster  from policy.policymaster pm left join policy.policymastersettings stng on pm.policymasterid=stng.policymasterid left join policy.planprojectmapping ppm on pm.policymasterid=ppm.planid left join mfi.usermaster um on um.userid=projectid left join mfi.clientcode c on um.UserID=c.ClientID left join pop.pop_DistProject_Map pmap on pmap.ProjectID = um.UserID where stng.ServiceFinishDate>now() and usertypeid=5 and role='admin' and UserID is not null group by ppm.projectid order by um.UserID desc ";
+            string clientmsgqry = "select  pm.PolicyName, UserID,VisibleName,um.VisibleName as ClientName,stng.ServiceFinishDate, stng.NotificationOnly,pmap.PopID, c.Cluster, pm.PolicyMasterID  from policy.policymaster pm left join policy.policymastersettings stng on pm.policymasterid=stng.policymasterid left join policy.planprojectmapping ppm on pm.policymasterid=ppm.planid left join mfi.usermaster um on um.userid=projectid left join mfi.clientcode c on um.UserID=c.ClientID left join pop.pop_DistProject_Map pmap on pmap.ProjectID = um.UserID where stng.ServiceFinishDate>now() and usertypeid=5 and role='admin' and UserID is not null group by ppm.projectid, pm.policymasterid order by um.UserID desc ";
             DataTable clientmsg = getData(clientmsgqry);
             for (int l = 0; l < clientmsg.Rows.Count; l++)
             {
                 string visiblename = clientmsg.Rows[l]["ClientName"].ToString();
+                string PolicyName = clientmsg.Rows[l]["PolicyName"].ToString();
+                int PolicyMasterID = clientmsg.Rows[l]["PolicyMasterID"].ToString().intTP();
                 string userid = clientmsg.Rows[l]["UserID"].ToString();
                 string sevicenddate= clientmsg.Rows[l]["ServiceFinishDate"].ToString();
                 string NotificationOnly = clientmsg.Rows[l]["NotificationOnly"].ToString();
@@ -1341,7 +1343,7 @@ namespace GGRCSMScheduler
 
                 if (flgTest)
                 {
-                    if (ID != "452289")
+                    if (ID != "454674")
                         continue;
                 }
                 if (Mode == "Jalna" && Cluster != 2)
@@ -1357,10 +1359,10 @@ namespace GGRCSMScheduler
               
               
                 string Client = visiblename;
-                Console.WriteLine("ID is==>" + ID + "==>client is==>" + Client);
+                Console.WriteLine("Policy is==>" + PolicyName + "==>client is==>" + Client);
 
-                if (ID == "150442")
-                    continue;
+                //if (ID == "150442")
+                //    continue;
 
 
                 updAppLastRun();
@@ -1370,7 +1372,7 @@ namespace GGRCSMScheduler
                 List<StringStringStringString> LstRefID = new List<StringStringStringString>();
                 List<DataTableAndColDescForecastData> LstsDataForecast = new List<DataTableAndColDescForecastData>();
                 DataTable DTDabwalfarms = new DataTable();
-                DTDabwalfarms = getDabwaliFarms(ID, Client);
+                DTDabwalfarms = getDabwaliFarms(ID, Client, PolicyMasterID);
                 
                 //Check Clent entry in popclientmastermap
                 string Defaultclient = popclientmastermap(ID);
@@ -1413,8 +1415,8 @@ namespace GGRCSMScheduler
                         string FarmID = DTDabwalfarms.Rows[i]["FarmID"].ToString();
                         if (flgTest)
                         {
-                            if (FarmID != "1290739")
-                                continue;
+                            //if (FarmID != "1290739")
+                            //    continue;
                         }
                         DataTable DTLastChecked = getData("select * from pop.sendlog where FarmID = " + FarmID);
 
@@ -1469,7 +1471,7 @@ namespace GGRCSMScheduler
                             WebClient wc = new WebClient();
                             wc.Encoding = Encoding.UTF8;
 
-                            string AdvisoryData = wc.DownloadString("https://myfarminfo.com/yfirest.svc/GetCropAdvisory/" + FarmID + "/" + prefPoplan + "/na/null/null/1");
+                            string AdvisoryData = wc.DownloadString("https://mfi.secu.farm/yfirest.svc/GetCropAdvisory/" + FarmID + "/" + prefPoplan + "/na/null/null/1");
 
                             string strAdvisoryData = JsonConvert.DeserializeObject<string>(AdvisoryData);
 
@@ -1993,7 +1995,7 @@ namespace GGRCSMScheduler
 
         }
 
-        private DataTable getDabwaliFarms(string ID, string client)
+        private DataTable getDabwaliFarms(string ID, string client, int PolicyMasterID)
         {
 
 
@@ -2019,8 +2021,9 @@ namespace GGRCSMScheduler
                         "on map.FarmID=info.ID left join test.sentinel_village_master vm  " +
                         "on vm.Village_ID=info.VillageID " +
                         " left join mfi.rain_alert_checkstatus as chkrn on chkrn.FarmID=info.ID " +
-                        " left join mfi.language_master lm on info.languageid = lm.ID where " +
-                        "map.MapProjectID=" + ID + " and VerificationStatus=1 and CurrentStatus=1  group by  info.ID";
+                        " left join mfi.language_master lm on info.languageid = lm.ID left join policy.policyplans plan on plan.planid=map.planid " +
+                        " left join policy.policymaster pm on pm.policymasterid=plan.policymasterid where " +
+                        "map.MapProjectID=" + ID + " and pm.policymasterid= " + PolicyMasterID + " and VerificationStatus=1 and CurrentStatus=1  group by  info.ID";
 
 
                     MySqlDataAdapter Adpter = new MySqlDataAdapter(sql, conn);
