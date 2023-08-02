@@ -31,7 +31,7 @@ namespace GGRCSMScheduler
         static void Main(string[] args)
         {
 
-               Program objProg = new Program();
+            Program objProg = new Program();
             bool createdNew;
             Program objProgram = new Program();
             if (mutex.WaitOne(TimeSpan.Zero, true))
@@ -54,14 +54,15 @@ namespace GGRCSMScheduler
                 arrActivityLog.Add("Started at " + DateTime.Now);
                 if(flgTest)
                     Console.WriteLine("RUNNING IN TEST MODE");
-                objProg.updAppLastRun();
                 objProg.NewPOPMessageSender();
                
             }
             else
             {
                 Console.WriteLine("Program is already running");
+                Thread.Sleep(TimeSpan.FromSeconds(5));
             }
+            Thread.Sleep(TimeSpan.FromSeconds(5));
         }
       
 
@@ -1326,7 +1327,7 @@ namespace GGRCSMScheduler
                                      Str1 = Convert.ToString(rw["WorkID"]),
                                      Str2 = Convert.ToString(rw["WorkName"])
                                  }).ToList();
-            string clientmsgqry = "select  pm.PolicyName, UserID,VisibleName,um.VisibleName as ClientName,stng.ServiceFinishDate, stng.NotificationOnly,pmap.PopID, c.Cluster, pm.PolicyMasterID  from policy.policymaster pm left join policy.policymastersettings stng on pm.policymasterid=stng.policymasterid left join policy.planprojectmapping ppm on pm.policymasterid=ppm.planid left join mfi.usermaster um on um.userid=projectid left join mfi.clientcode c on um.UserID=c.ClientID left join pop.pop_DistProject_Map pmap on pmap.ProjectID = um.UserID where stng.ServiceFinishDate>now() and usertypeid=5 and role='admin' and UserID is not null group by ppm.projectid, pm.policymasterid order by um.UserID desc ";
+            string clientmsgqry = "select  pm.PolicyName, um.UserID,VisibleName,um.VisibleName as ClientName,stng.ServiceFinishDate, stng.NotificationOnly,pmap.PopID, c.Cluster, pm.PolicyMasterID  from policy.policymaster pm left join policy.policymastersettings stng on pm.policymasterid=stng.policymasterid left join policy.planprojectmapping ppm on pm.policymasterid=ppm.planid left join mfi.usermaster um on um.userid=projectid left join mfi.clientcode c on um.UserID=c.ClientID left join pop.pop_DistProject_Map pmap on pmap.ProjectID = um.UserID where stng.ServiceFinishDate>now() and usertypeid=5 and role='admin' and um.UserID is not null group by ppm.projectid, pm.policymasterid order by um.UserID desc ";
             DataTable clientmsg = getData(clientmsgqry);
             for (int l = 0; l < clientmsg.Rows.Count; l++)
             {
@@ -1343,7 +1344,7 @@ namespace GGRCSMScheduler
 
                 if (flgTest)
                 {
-                    if (ID != "454674")
+                    if (userid != "443096")
                         continue;
                 }
                 if (Mode == "Jalna" && Cluster != 2)
@@ -1396,7 +1397,7 @@ namespace GGRCSMScheduler
                     string status = "Pending";
 
                     if (Cluster == 2 || NotificationOnly != "0")
-                        status = "Done";
+                        status = "NotSent";
 
 
                     for (int i = 0; i < DTDabwalfarms.Rows.Count; i++)
@@ -1415,8 +1416,8 @@ namespace GGRCSMScheduler
                         string FarmID = DTDabwalfarms.Rows[i]["FarmID"].ToString();
                         if (flgTest)
                         {
-                            //if (FarmID != "1290739")
-                            //    continue;
+                            if (FarmID != "1292919")
+                                continue;
                         }
                         DataTable DTLastChecked = getData("select * from pop.sendlog where FarmID = " + FarmID);
 
@@ -1684,7 +1685,6 @@ namespace GGRCSMScheduler
             DataTable DTSentMessages = getData("select * from pop.sentmessages where FarmID = " + FarmID + " and WorkID in (" + strWorkIDS + ") and LastCheckedDate >= '" + DateTime.Now.AddDays(-11).ToString("yyyy-MM-dd") + "'");
             if (DTSentMessages.Rows.Count > 0)
             {
-
                 lstSentWorkIDs = DTSentMessages.AsEnumerable().Select(a => a.Field<int>("WorkID")).ToList();
             }
 
