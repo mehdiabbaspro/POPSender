@@ -27,7 +27,7 @@ namespace GGRCSMScheduler
         public static System.Threading.Mutex mutex = new Mutex(true, "FarmSMScheduler2.exe");
         double totalwater = 25;
         public static bool flgTest = false;
-        public static string Mode = "Other";
+        public static string Mode = "Jalna";
         static void Main(string[] args)
         {
 
@@ -1472,11 +1472,10 @@ namespace GGRCSMScheduler
                             WebClient wc = new WebClient();
                             wc.Encoding = Encoding.UTF8;
 
-                            string AdvisoryData = wc.DownloadString("https://mfi.secu.farm/yfirest.svc/GetCropAdvisory/" + FarmID + "/" + prefPoplan + "/na/null/null/1");
+                            string AdvisoryData = wc.DownloadString("https://api.secu.farm/Utility/GetCropAdvisory/" + FarmID + "/" + prefPoplan + "");
 
-                            string strAdvisoryData = JsonConvert.DeserializeObject<string>(AdvisoryData);
 
-                            DashBordAdvisory objDA = JsonConvert.DeserializeObject<DashBordAdvisory>(strAdvisoryData);
+                            DashBordAdvisory objDA = JsonConvert.DeserializeObject<DashBordAdvisory>(AdvisoryData);
                             Console.WriteLine("==>client is==>" + Client + "Sending POP - " + i + "/" + DTDabwalfarms.Rows.Count);
                             sendPOPMessages(lstWorkMaster, Client, DTDabwalfarms, status, i, 
                                 stateID,ref  hindivillage, out VillageID, out Village, FarmID, mobileno, sqlhead_sentmessages, out DTPOPSMS, ref SMS,
@@ -1571,9 +1570,14 @@ namespace GGRCSMScheduler
 
 
 
-                  if (DTPOPSMS.Rows.Count == 0)
-                       return;
+                if (DTPOPSMS.Rows.Count == 0)
+                {
+                    Console.WriteLine(CC_PS + " no rows found");
+                    return;
 
+                }
+
+                Console.WriteLine(CC_PS + " " + DTPOPSMS.Rows.Count + " rows found");
                 string CCSID = StageName;
                 string SndFrom = Client + "_" + CC_PS + "_" + StageName;
                 if (Client != "ggrc")
