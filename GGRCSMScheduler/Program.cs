@@ -26,7 +26,7 @@ namespace GGRCSMScheduler
         static int AppID = 22;
         public static System.Threading.Mutex mutex = new Mutex(true, "FarmSMScheduler2.exe");
         double totalwater = 25;
-        public static bool flgTest = true;
+        public static bool flgTest = false;
         public static string Mode = "Other";
         static void Main(string[] args)
         {
@@ -1127,7 +1127,7 @@ namespace GGRCSMScheduler
         public string popclientmastermap(string cid)
         {
             string result = "";
-            DataTable DT =  getData("select * from mfi.`pop_DistProject_Map where ClientID='" + cid + "' ");
+            DataTable DT =  getData("select * from mfi.pop_DistProject_Map where ClientID='" + cid + "' ");
 
             DataTable DTcrop = getData("select ClientCropId from mfi.clientcode where ClientID = '"+ cid + "'");
             string cropid = "";
@@ -1334,7 +1334,7 @@ namespace GGRCSMScheduler
                             WebClient wc = new WebClient();
                             wc.Encoding = Encoding.UTF8;
 
-                            string AdvisoryData = wc.DownloadString("https://api.secu.farm/Utility/GetCropAdvisory/" + FarmID + "/" + prefPoplan + "");
+                            string AdvisoryData = wc.DownloadString("http://api.secupvt.farm/Utility/GetCropAdvisory/" + FarmID + "/" + prefPoplan + "");
 
 
                             DashBordAdvisory objDA = JsonConvert.DeserializeObject<DashBordAdvisory>(AdvisoryData);
@@ -1540,6 +1540,10 @@ namespace GGRCSMScheduler
             Village = "";
             VillageID = "";
             DTPOPSMS = objDA.NextStep.lstnextPopDT;
+            if(DTPOPSMS.Rows.Count>0)
+            {
+
+            }
             var sss = DTPOPSMS.AsEnumerable()
            .Select(r => r.Field<int>("WorkMapID"));
             List<Int64> list = DTPOPSMS.AsEnumerable()
