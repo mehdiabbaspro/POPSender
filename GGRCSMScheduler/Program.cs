@@ -20,8 +20,6 @@ namespace GGRCSMScheduler
     class Program
     {
         public static MySqlConnection conn;
-        public string Address = "Server=mys.wrmsglobal.com;Port=3306;" +
-                        "DataBase=wrserver1;Uid=weathermaster;Pwd=neon04$WR1;Convert Zero Datetime=True";
         static ArrayList arrActivityLog = new ArrayList();
         static int AppID = 22;
         public static System.Threading.Mutex mutex = new Mutex(true, "FarmSMScheduler2.exe");
@@ -32,6 +30,7 @@ namespace GGRCSMScheduler
         {
 
             Program objProg = new Program();
+
             bool createdNew;
             Program objProgram = new Program();
             if (mutex.WaitOne(TimeSpan.Zero, true))
@@ -48,8 +47,12 @@ namespace GGRCSMScheduler
                 {
                     AppID = 89;
                 }
-                //  arrActivityLog.Add("Started at " + DateTime.Now);
-                Console.WriteLine("POP Sender");
+				ConfigManager.Initialize(); // uses ENVIRONMENT and SHARED_CONFIG_PATH
+
+				Console.WriteLine("Environment: " + ConfigManager.AppEnvironment);
+				Console.WriteLine("MySQL: " + ConfigManager.MySqlUrl);
+				//  arrActivityLog.Add("Started at " + DateTime.Now);
+				Console.WriteLine("POP Sender");
                 Console.WriteLine("Start at ... " + DateTime.Now);
                 arrActivityLog.Add("Started at " + DateTime.Now);
                 if(flgTest)
@@ -158,7 +161,7 @@ namespace GGRCSMScheduler
 
         public bool addToCMLog()
         {
-            conn = new MySqlConnection(Address);
+            conn = new MySqlConnection(ConfigManager.MySqlUrl);
             conn.Open();
 
             string LogDate = ConDateTime(DateTime.Now);
@@ -1334,7 +1337,7 @@ namespace GGRCSMScheduler
                             WebClient wc = new WebClient();
                             wc.Encoding = Encoding.UTF8;
 
-                            string AdvisoryData = wc.DownloadString("http://api.secupvt.farm/Utility/GetCropAdvisory/" + FarmID + "/" + prefPoplan + "");
+                            string AdvisoryData = wc.DownloadString(ConfigManager.ApiSecuFarmBaseUrl + "/Utility/GetCropAdvisory/" + FarmID + "/" + prefPoplan + "");
 
 
                             DashBordAdvisory objDA = JsonConvert.DeserializeObject<DashBordAdvisory>(AdvisoryData);
@@ -4119,82 +4122,8 @@ namespace GGRCSMScheduler
             DateTime.TryParse(OrigVal, out dblVal);
             return dblVal;
         }
-        public static DataTable ListToDataTable<T>(this IList<T> data, string tableName)
-        {
-            DataTable table = new DataTable(tableName);
-
-            //special handling for value types and string
-            if (typeof(T).IsValueType || typeof(T).Equals(typeof(string)))
-            {
-
-                DataColumn dc = new DataColumn("Value");
-                table.Columns.Add(dc);
-                foreach (T item in data)
-                {
-                    DataRow dr = table.NewRow();
-                    dr[0] = item;
-                    table.Rows.Add(dr);
-                }
-            }
-            else
-            {
-                PropertyDescriptorCollection properties = TypeDescriptor.GetProperties(typeof(T));
-                foreach (PropertyDescriptor prop in properties)
-                {
-                    table.Columns.Add(prop.Name,
-                    Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType);
-                }
-                foreach (T item in data)
-                {
-                    DataRow row = table.NewRow();
-                    foreach (PropertyDescriptor prop in properties)
-                    {
-                        try
-                        {
-                            row[prop.Name] = prop.GetValue(item) ?? DBNull.Value;
-                        }
-                        catch (Exception ex)
-                        {
-                            row[prop.Name] = DBNull.Value;
-                        }
-                    }
-                    table.Rows.Add(row);
-                }
-            }
-            return table;
-        }
-        public static T DeepClone<T>(T obj)
-        {
-            using (var ms = new MemoryStream())
-            {
-                var formatter = new BinaryFormatter();
-                formatter.Serialize(ms, obj);
-                ms.Position = 0;
-
-                return (T)formatter.Deserialize(ms);
-            }
-        }
-        public static DataTable ToDataTable<T>(IList<T> data)
-        {
-            PropertyDescriptorCollection props =
-                TypeDescriptor.GetProperties(typeof(T));
-            DataTable table = new DataTable();
-            for (int i = 0; i < props.Count; i++)
-            {
-                PropertyDescriptor prop = props[i];
-                table.Columns.Add(prop.Name, prop.PropertyType);
-            }
-            object[] values = new object[props.Count];
-            foreach (T item in data)
-            {
-                for (int i = 0; i < values.Length; i++)
-                {
-                    values[i] = props[i].GetValue(item);
-                }
-                table.Rows.Add(values);
-            }
-            return table;
-        }
+      
+      
     }
 
     
