@@ -9,5 +9,6 @@
     <ErrorReportUrlHistory />
     <FallbackCulture>en-US</FallbackCulture>
     <VerifyUploadedFiles>false</VerifyUploadedFiles>
+    <_LastSelectedProfileId>D:\Work\Repos\mehdiabbaspro\POPSender\GGRCSMScheduler\Properties\PublishProfiles\FolderProfile.pubxml</_LastSelectedProfileId>
   </PropertyGroup>
 </Project>
